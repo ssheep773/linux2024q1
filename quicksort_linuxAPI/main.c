@@ -125,6 +125,8 @@ int main(void)
 
     test_t tests[] = {
         {.name = "quick_sort", .impl = quick_sort},
+        {.name = "quick_sort_mid", .impl = quick_sort_mid},
+
 
         {NULL, NULL},
     };
@@ -136,8 +138,8 @@ int main(void)
     element_t *warmdata = malloc(sizeof(*warmdata) * SAMPLES);
     element_t *testdata = malloc(sizeof(*testdata) * SAMPLES);
 
-    create_sample(&sample_head, samples, nums);
-    // create_sorting_sample(&sample_head, samples, nums);
+    // create_sample(&sample_head, samples, nums);
+    create_sorting_sample(&sample_head, samples, nums);
 
     while (test->impl) {
         printf("==== Testing %s ====\n", test->name);

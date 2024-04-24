@@ -3,8 +3,8 @@ CFLAGS = -O0
 
 all: main
 
-OBJS := main.o quick.o
-# OBJS := main.o quicksort_api.o
+OBJS := main.o quick.o quick_mid.o
+
 deps := $(OBJS:%.o=.%.o.d)
 
 main: $(OBJS)

@@ -47,3 +47,6 @@ static inline int q_size(struct list_head *head)
 
 __attribute__((nonnull(1, 3))) void 
 quick_sort(void *priv, struct list_head *head, list_cmp_func_t cmp);
+
+__attribute__((nonnull(1, 3))) void 
+quick_sort_mid(void *priv, struct list_head *head, list_cmp_func_t cmp);
