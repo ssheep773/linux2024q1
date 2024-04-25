@@ -11,24 +11,17 @@ struct list_head *findMiddle(struct list_head *a,
                              void *priv,
                              list_cmp_func_t cmp)
 {
-    int result = cmp(priv, a, b);
-    if (result <= 0) {  // 如果 a 小於 b
-        // 檢查 b 和 c 的關係
-        result = cmp(priv, b, c);
-        if (result <= 0) {  // 如果 b 小於 c，則 b 為中間數字
-            return b;
-        } else {  // 否則 c 為中間數字
-            return c;
-        }
-    } else {  // 如果 a 不小於 b，則檢查 a 和 c 的關係
-        result = cmp(priv, a, c);
-        if (result <= 0) {  // 如果 a 小於 c，則 a 為中間數字
-            return a;
-        } else {  // 否則 c 為中間數字
-            return c;
-        }
+    int cmpAB = cmp(priv, a, b);
+    int cmpAC = cmp(priv, a, c);   
+    int cmpBC = cmpAB - cmpAC;
+ 
+    if ( (cmpAB <= 0 && cmpAC >= 0) || (cmpAB >= 0 && cmpAC <= 0) ) {               
+        return a;
     }
-    // return a;
+    if ( (cmpAB >= 0 && cmpBC >= 0) || (cmpAB <= 0 && cmpBC <= 0)){                       
+        return b;
+    }
+    return c;
 }
 
 void quick_sort_mid(void *priv, struct list_head *head, list_cmp_func_t cmp)
@@ -62,7 +55,6 @@ void quick_sort_mid(void *priv, struct list_head *head, list_cmp_func_t cmp)
                     mid = mid->next;
                 }
                 pivot = findMiddle(first, mid, last, priv, cmp);
-
             } else {
                 pivot = begin[i]->next;
             }
@@ -71,11 +63,8 @@ void quick_sort_mid(void *priv, struct list_head *head, list_cmp_func_t cmp)
 
             while (!list_empty(begin[i])) {
                 struct list_head *cur = begin[i]->next;
-
-                if (cmp(priv, cur, pivot) >=
-                    0) {  // if not equal the sorting will be unstable
+                if (cmp(priv, cur, pivot) >= 0) {
                     list_move_tail(cur, &right);
-
                 } else {
                     list_move_tail(cur, &left);
                 }
@@ -94,7 +83,6 @@ void quick_sort_mid(void *priv, struct list_head *head, list_cmp_func_t cmp)
             list_splice_tail_init(&tmp, begin[i + 1]);
 
             i += 2;
-
         } else {
             /*singular*/
             if (!list_empty(begin[i])) {
@@ -102,13 +90,12 @@ void quick_sort_mid(void *priv, struct list_head *head, list_cmp_func_t cmp)
                 struct list_head *pivot = begin[i]->next;
                 list_add(pivot, &result);
 
-
                 free(begin[i]);
                 begin[i] = NULL;
             }
             i--;
         }
     }
-
     list_splice_tail_init(&result, head);
+    free(begin);
 }
