@@ -3,7 +3,12 @@
 
 #include "quick.h"
 
-//以 linux api 建構，實作 middle of three
+//以 linux api 建構
+// 目的： create begin by link-list 
+typedef struct begin_t{
+    struct list_head blist;
+    struct list_head *head;
+} begin_t;
 
 struct list_head *findMiddle(struct list_head *a,
                              struct list_head *b,
@@ -24,78 +29,101 @@ struct list_head *findMiddle(struct list_head *a,
     return c;
 }
 
+static inline begin_t *new_begin(struct list_head *head)
+{
+    begin_t *new_node = malloc(sizeof(begin_t)); // create new begin_t node 
+    if (!new_node)
+        return NULL;
+
+    new_node->head = malloc(sizeof(struct list_head));
+    INIT_LIST_HEAD(new_node->head);
+    
+    list_splice_tail_init(head, new_node->head);  // init 必要
+
+    INIT_LIST_HEAD(&new_node->blist);
+    return new_node;
+}
+
 void quick_sort_mid(void *priv, struct list_head *head, list_cmp_func_t cmp)
 {
-    int n = q_size(head);
-    int i = 0;
-    int max_level = 2 * n;
-    struct list_head **begin = malloc(sizeof(struct list_head *) * max_level);
+    int count = 0;
+    int max_count = 0;
     LIST_HEAD(result);
 
-    begin[0] = malloc(sizeof(struct list_head));
-    INIT_LIST_HEAD(begin[0]);
-    list_splice_tail_init(head, begin[0]);
+    struct list_head *begin_head = malloc(sizeof(struct list_head));
+    INIT_LIST_HEAD(begin_head);
 
-    while (i >= 0) {
-        if (!list_is_singular(begin[i]) && !list_empty(begin[i])) {
+    begin_t *all = new_begin(head);
+    list_add_tail(&all->blist, begin_head);
+
+    struct list_head *sptr = begin_head->next;
+   
+    while (sptr != begin_head)
+    {
+        begin_t *snode = list_entry(sptr, begin_t, blist);
+       
+        if (!list_is_singular(snode->head) && !list_empty(snode->head)){
             /*not singular*/
             LIST_HEAD(left);
             LIST_HEAD(right);
             LIST_HEAD(tmp);
 
-            struct list_head *pivot;
-            if (begin[i]->next->next->next != begin[i]) {
-                struct list_head *first = begin[i]->next;
-                struct list_head *last = begin[i]->prev;
-                struct list_head *mid = begin[i]->next;
 
-                for (struct list_head *fast = begin[i]->next;
-                     fast != begin[i] && fast->next != begin[i];
+            struct list_head *pivot;
+            if (snode->head->next->next->next != snode->head) {
+                struct list_head *first = snode->head->next;
+                struct list_head *last = snode->head->prev;
+                struct list_head *mid = snode->head->next;
+
+                for (struct list_head *fast = snode->head->next;
+                     fast != snode->head && fast->next != snode->head;
                      fast = fast->next->next) {
                     mid = mid->next;
                 }
                 pivot = findMiddle(first, mid, last, priv, cmp);
             } else {
-                pivot = begin[i]->next;
+                pivot = snode->head->next;
             }
 
-            list_del(pivot);  //將 pivot 從原有的list去除
-
-            while (!list_empty(begin[i])) {
-                struct list_head *cur = begin[i]->next;
-                if (cmp(priv, cur, pivot) >= 0) {
+            list_del(pivot);                //將 pivot 從原有的list去除    
+            list_add(pivot, &tmp); 
+            
+            while(!list_empty(snode->head)){
+                struct list_head *cur = snode->head->next;
+                if (cmp(priv,cur ,pivot) >= 0 ){  // if not equal the sorting will be unstable
                     list_move_tail(cur, &right);
                 } else {
-                    list_move_tail(cur, &left);
+                    list_move_tail(cur, &left);   
                 }
             }
+            list_splice_tail_init(&left, snode->head);
 
-            begin[i + 1] = malloc(sizeof(struct list_head));
-            INIT_LIST_HEAD(begin[i + 1]);
+            begin_t *mid_begin = new_begin(&tmp);
+            list_add_tail(&mid_begin->blist, begin_head);
 
-            begin[i + 2] = malloc(sizeof(struct list_head));
-            INIT_LIST_HEAD(begin[i + 2]);
+            begin_t *right_begin = new_begin(&right);
+            list_add_tail(&right_begin->blist, begin_head);
 
-            list_splice_tail_init(&left, begin[i]);
-            list_splice_tail_init(&right, begin[i + 2]);
-
-            list_add(pivot, &tmp);
-            list_splice_tail_init(&tmp, begin[i + 1]);
-
-            i += 2;
-        } else {
+            sptr = sptr->next->next;
+            count += 2;
+            max_count = count > max_count ? count : max_count;
+            // printf("max = %d , c = %d\n",max_count,count);
+        } else { 
             /*singular*/
-            if (!list_empty(begin[i])) {
+            if (!list_empty(snode->head)){
                 /* not empty*/
-                struct list_head *pivot = begin[i]->next;
-                list_add(pivot, &result);
-
-                free(begin[i]);
-                begin[i] = NULL;
+                list_add(snode->head->next, &result);
             }
-            i--;
+                begin_t *del = snode;
+                sptr = sptr->prev;
+                count --;
+
+                list_del(&del->blist);
+                free(del->head);
+                free(del);             
         }
     }
+    printf("max begin count = %d\n", max_count);
+    free(begin_head);
     list_splice_tail_init(&result, head);
-    free(begin);
 }

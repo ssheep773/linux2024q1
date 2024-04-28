@@ -42,7 +42,6 @@ void quick_sort(void *priv, struct list_head *head, list_cmp_func_t cmp)
     while (sptr != begin_head)
     {
         begin_t *snode = list_entry(sptr, begin_t, blist);
-       
         if (!list_is_singular(snode->head) && !list_empty(snode->head)){
             /*not singular*/
             LIST_HEAD(left);
@@ -72,7 +71,6 @@ void quick_sort(void *priv, struct list_head *head, list_cmp_func_t cmp)
             sptr = sptr->next->next;
             count += 2;
             max_count = count > max_count ? count : max_count;
-            // printf("max = %d , c = %d\n",max_count,count);
         } else { 
             /*singular*/
             if (!list_empty(snode->head)){
@@ -88,7 +86,7 @@ void quick_sort(void *priv, struct list_head *head, list_cmp_func_t cmp)
                 free(del);             
         }
     }
-    printf("max begin size = %d\n", max_count);
+    printf("max begin count = %d\n", max_count);
     free(begin_head);
     list_splice_tail_init(&result, head);
 }
