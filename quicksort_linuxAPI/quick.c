@@ -10,7 +10,7 @@ typedef struct begin_t{
     struct list_head *head;
 } begin_t;
 
-static inline begin_t *new_begin(struct list_head *head , int *count)
+static inline begin_t *new_begin(struct list_head *head)
 {
     begin_t *new_node = malloc(sizeof(begin_t)); // create new begin_t node 
     if (!new_node)
@@ -22,7 +22,6 @@ static inline begin_t *new_begin(struct list_head *head , int *count)
     list_splice_tail_init(head, new_node->head);  // init 必要
 
     INIT_LIST_HEAD(&new_node->blist);
-    *count += 1;
     return new_node;
 }
 
@@ -35,7 +34,7 @@ void quick_sort(void *priv, struct list_head *head, list_cmp_func_t cmp)
     struct list_head *begin_head = malloc(sizeof(struct list_head));
     INIT_LIST_HEAD(begin_head);
 
-    begin_t *all = new_begin(head, &count);
+    begin_t *all = new_begin(head);
     list_add_tail(&all->blist, begin_head);
 
     struct list_head *sptr = begin_head->next;
@@ -64,14 +63,16 @@ void quick_sort(void *priv, struct list_head *head, list_cmp_func_t cmp)
             }
             list_splice_tail_init(&left, snode->head);
 
-            begin_t *mid_begin = new_begin(&tmp, &count);
+            begin_t *mid_begin = new_begin(&tmp);
             list_add_tail(&mid_begin->blist, begin_head);
 
-            begin_t *right_begin = new_begin(&right, &count);
+            begin_t *right_begin = new_begin(&right);
             list_add_tail(&right_begin->blist, begin_head);
 
             sptr = sptr->next->next;
+            count += 2;
             max_count = count > max_count ? count : max_count;
+            // printf("max = %d , c = %d\n",max_count,count);
         } else { 
             /*singular*/
             if (!list_empty(snode->head)){
@@ -80,6 +81,7 @@ void quick_sort(void *priv, struct list_head *head, list_cmp_func_t cmp)
             }
                 begin_t *del = snode;
                 sptr = sptr->prev;
+                count --;
 
                 list_del(&del->blist);
                 free(del->head);

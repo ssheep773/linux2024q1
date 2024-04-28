@@ -28,7 +28,7 @@ typedef int
     
 //     list_for_each_entry (cur, head, list)
 //         printf("%d.%d ", cur->val, cur->seq);
-        
+
 //     printf("\n");
 // }
 
@@ -45,8 +45,8 @@ static inline int q_size(struct list_head *head)
     return len;
 }
 
-__attribute__((nonnull(1, 3))) void 
+__attribute__((nonnull(2, 3))) void 
 quick_sort(void *priv, struct list_head *head, list_cmp_func_t cmp);
 
-__attribute__((nonnull(1, 3))) void 
+__attribute__((nonnull(2, 3))) void 
 quick_sort_mid(void *priv, struct list_head *head, list_cmp_func_t cmp);
